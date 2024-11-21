@@ -125,7 +125,7 @@ const Dashboard = () => {
       );
       const data: CommentResponse = await response.json();
       if (response.ok && data.comment) {
-        setComments([...comments, data.comment]);
+        setComments([...comments, data.comment!]); // Added '!'
         setCommentContent("");
       } else {
         console.error("Failed to create comment:", data.message || "Unknown error");
@@ -493,7 +493,7 @@ const Dashboard = () => {
       const data: CommentResponse = await response.json();
       if (response.ok && data.comment) {
         setComments(
-          comments.map((c) => (c.id === commentId ? data.comment! : c))
+          comments.map((c) => (c.id === commentId ? data.comment! : c)) // Added '!'
         );
         setEditingComment(null);
       } else {
@@ -611,7 +611,7 @@ const Dashboard = () => {
         );
         const data: CommentResponse = await response.json();
         if (response.ok && data.comment) {
-          setComments((prevComments) => [...prevComments, data.comment]);
+          setComments((prevComments) => [...prevComments, data.comment!]); // Added '!'
           setReplyContent("");
           setIsReplying(false);
         } else {
