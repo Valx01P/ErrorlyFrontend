@@ -17,7 +17,7 @@ const Profile = () => {
 
     const fetchProfile = async () => {
         try {
-            const response = await fetch('http://localhost:3000/profile', {
+            const response = await fetch('https://errorlyapi.onrender.com/profile', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ const Profile = () => {
         const method = profile ? 'PUT' : 'POST'
         
         try {
-            const response = await fetch('http://localhost:3000/profile', {
+            const response = await fetch('https://errorlyapi.onrender.com/profile', {
                 method,
                 headers: {
                     'Content-Type': 'application/json',

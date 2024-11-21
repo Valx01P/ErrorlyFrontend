@@ -77,7 +77,7 @@ const Dashboard = () => {
     if (!selectedPost || !commentContent.trim()) return;
 
     try {
-      const response = await fetch("http://localhost:3000/comments", {
+      const response = await fetch("https://errorlyapi.onrender.com/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,7 +122,7 @@ const Dashboard = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch("http://localhost:3000/posts", {
+      const response = await fetch("https://errorlyapi.onrender.com/posts", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -146,7 +146,7 @@ const Dashboard = () => {
   const handleNewPost = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:3000/posts", {
+      const response = await fetch("https://errorlyapi.onrender.com/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +177,7 @@ const Dashboard = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/posts/${editingPost.id}`,
+        `https://errorlyapi.onrender.com/posts/${editingPost.id}`,
         {
           method: "PUT",
           headers: {
@@ -216,7 +216,7 @@ const Dashboard = () => {
   const handleDeletePost = async (postId: number) => {
     try {
       console.log("Deleting post:", postId);
-      const response = await fetch(`http://localhost:3000/posts/${postId}`, {
+      const response = await fetch(`https://errorlyapi.onrender.com/posts/${postId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json", // Added content-type header
@@ -255,7 +255,7 @@ const Dashboard = () => {
 
   const fetchComments = async (postId: number) => {
     try {
-      const response = await fetch("http://localhost:3000/comments", {
+      const response = await fetch("https://errorlyapi.onrender.com/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -275,7 +275,7 @@ const Dashboard = () => {
 
   const fetchUserVotes = async () => {
     try {
-      const response = await fetch("http://localhost:3000/votes", {
+      const response = await fetch("https://errorlyapi.onrender.com/votes", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -312,7 +312,7 @@ const Dashboard = () => {
     const currentVote = userVotes[`${type}_${id}`];
 
     let method = "";
-    let endpoint = "http://localhost:3000/votes";
+    let endpoint = "https://errorlyapi.onrender.com/votes";
     let body: any = {
       [`${type}_id`]: id,
       positive: positive,
@@ -410,7 +410,7 @@ const Dashboard = () => {
   const handleUpdateComment = async (commentId: number, newContent: string) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/comments/${commentId}`,
+        `https://errorlyapi.onrender.com/comments/${commentId}`,
         {
           method: "PUT",
           headers: {
@@ -436,7 +436,7 @@ const Dashboard = () => {
   const handleDeleteComment = async (commentId: number) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/comments/${commentId}`,
+        `https://errorlyapi.onrender.com/comments/${commentId}`,
         {
           method: "DELETE",
           headers: {
@@ -519,7 +519,7 @@ const Dashboard = () => {
       if (!selectedPost) return;
 
       try {
-        const response = await fetch("http://localhost:3000/comments", {
+        const response = await fetch("https://errorlyapi.onrender.com/comments", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
