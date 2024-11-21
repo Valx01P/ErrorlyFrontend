@@ -41,6 +41,39 @@ interface Vote {
   positive: boolean;
 }
 
+// Response interfaces
+interface PostsResponse {
+  message?: string;
+  posts?: Post[];
+}
+
+interface CommentsResponse {
+  message?: string;
+  comments?: Comment[];
+}
+
+interface VotesResponse {
+  message?: string;
+  votes?: Vote[];
+}
+
+interface PostResponse {
+  message?: string;
+  post?: Post;
+}
+
+interface CommentResponse {
+  message?: string;
+  comment?: Comment;
+}
+
+interface VoteResponse {
+  message?: string;
+  vote?: Vote;
+  post?: Post;
+  comment?: Comment;
+}
+
 const Dashboard = () => {
   const [closeSidebar, setCloseSidebar] = useState(false);
   const [activeContent, setActiveContent] = useState("posts");
@@ -75,24 +108,27 @@ const Dashboard = () => {
     if (!selectedPost || !commentContent.trim()) return;
 
     try {
-      const response = await fetch("https://errorlyapi.onrender.com/comments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          post_id: selectedPost.id,
-          content: commentContent.trim(),
-        }),
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await fetch(
+        "https://errorlyapi.onrender.com/comments",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            post_id: selectedPost.id,
+            content: commentContent.trim(),
+          }),
+        }
+      );
+      const data: CommentResponse = await response.json();
+      if (response.ok && data.comment) {
         setComments([...comments, data.comment]);
         setCommentContent("");
       } else {
-        console.error("Failed to create comment:", data.message);
+        console.error("Failed to create comment:", data.message || "Unknown error");
       }
     } catch (error) {
       console.error("Failed to create comment:", error);
@@ -130,8 +166,10 @@ const Dashboard = () => {
         },
         credentials: "include",
       });
-      const data = (await response.json()) as { posts: Post[] };
-      if (response.ok) {
+
+      const data: PostsResponse = await response.json();
+
+      if (response.ok && data.posts) {
         // Ensure each post has a tags array
         const postsWithTags = data.posts.map((post) => ({
           ...post,
@@ -143,7 +181,7 @@ const Dashboard = () => {
         ];
         setAllTags(tags);
       } else {
-        console.error("Failed to fetch posts:", data.message);
+        console.error("Failed to fetch posts:", data.message || "Unknown error");
       }
     } catch (error) {
       console.error("Failed to fetch posts:", error);
@@ -166,24 +204,22 @@ const Dashboard = () => {
         }),
       });
 
-      const data = await response.json();
+      const data: PostResponse = await response.json();
 
-      if (!response.ok) {
-        console.error("Failed to create post:", data.message);
-        // Optionally display an error message to the user
-        return;
+      if (response.ok && data.post) {
+        // Ensure tags are defined
+        if (!data.post.tags) {
+          data.post.tags = [];
+        }
+
+        setPosts([data.post, ...posts]);
+        setTitle("");
+        setContent("");
+        setTags([]);
+        setActiveContent("posts");
+      } else {
+        console.error("Failed to create post:", data.message || "Unknown error");
       }
-
-      // Ensure tags are defined
-      if (!data.post.tags) {
-        data.post.tags = [];
-      }
-
-      setPosts([data.post, ...posts]);
-      setTitle("");
-      setContent("");
-      setTags([]);
-      setActiveContent("posts");
     } catch (error) {
       console.error("Failed to create post:", error);
     }
@@ -213,26 +249,24 @@ const Dashboard = () => {
         }
       );
 
-      const data = await response.json();
+      const data: PostResponse = await response.json();
 
-      if (!response.ok) {
-        console.error("Failed to update post:", data.message);
-        // Optionally display an error message to the user
-        return;
+      if (response.ok && data.post) {
+        const updatedPost = {
+          ...editingPost,
+          title: editPostTitle,
+          content: editPostContent,
+          tags: editPostTags,
+        };
+        setPosts(posts.map((p) => (p.id === editingPost.id ? updatedPost : p)));
+        if (selectedPost?.id === editingPost.id) {
+          setSelectedPost(updatedPost);
+        }
+        setEditingPost(null);
+        setShowPostMenu(null);
+      } else {
+        console.error("Failed to update post:", data.message || "Unknown error");
       }
-
-      const updatedPost = {
-        ...editingPost,
-        title: editPostTitle,
-        content: editPostContent,
-        tags: editPostTags,
-      };
-      setPosts(posts.map((p) => (p.id === editingPost.id ? updatedPost : p)));
-      if (selectedPost?.id === editingPost.id) {
-        setSelectedPost(updatedPost);
-      }
-      setEditingPost(null);
-      setShowPostMenu(null);
     } catch (error) {
       console.error("Failed to update post:", error);
     }
@@ -246,33 +280,33 @@ const Dashboard = () => {
         {
           method: "DELETE",
           headers: {
-            "Content-Type": "application/json", // Added content-type header
+            "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
           credentials: "include",
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to delete post:", errorData.message);
-        return;
-      }
+      const data: PostResponse = await response.json();
 
-      // Remove post from local state
-      setPosts((prevPosts) => prevPosts.filter((p) => p.id !== postId));
+      if (response.ok) {
+        // Remove post from local state
+        setPosts((prevPosts) => prevPosts.filter((p) => p.id !== postId));
 
-      // Close the post if it was selected
-      if (selectedPost?.id === postId) {
-        setSelectedPost(null);
-      }
+        // Close the post if it was selected
+        if (selectedPost?.id === postId) {
+          setSelectedPost(null);
+        }
 
-      // Close the menu
-      setShowPostMenu(null);
+        // Close the menu
+        setShowPostMenu(null);
 
-      // Close edit modal if open
-      if (editingPost?.id === postId) {
-        setEditingPost(null);
+        // Close edit modal if open
+        if (editingPost?.id === postId) {
+          setEditingPost(null);
+        }
+      } else {
+        console.error("Failed to delete post:", data.message || "Unknown error");
       }
     } catch (error) {
       console.error("Error deleting post:", error);
@@ -294,11 +328,16 @@ const Dashboard = () => {
           credentials: "include",
         }
       );
-      const data = (await response.json()) as { comments: Comment[] };
-      if (response.ok) {
+
+      const data: CommentsResponse = await response.json();
+
+      if (response.ok && data.comments) {
         setComments(data.comments);
       } else {
-        console.error("Failed to fetch comments:", data.message);
+        console.error(
+          "Failed to fetch comments:",
+          data.message || "Unknown error"
+        );
       }
     } catch (error) {
       console.error("Failed to fetch comments:", error);
@@ -316,12 +355,8 @@ const Dashboard = () => {
         credentials: "include",
       });
 
-      if (response.status === 404) {
-        setUserVotes({});
-        return;
-      }
+      const data: VotesResponse = await response.json();
 
-      const data = (await response.json()) as { votes: Vote[] };
       if (response.ok && data.votes) {
         const votesMap: Record<string, boolean> = {};
         data.votes.forEach((vote: Vote) => {
@@ -331,7 +366,7 @@ const Dashboard = () => {
         });
         setUserVotes(votesMap);
       } else {
-        console.error("Failed to fetch votes:", data.message);
+        console.error("Failed to fetch votes:", data.message || "Unknown error");
       }
     } catch (error) {
       console.error("Failed to fetch votes:", error);
@@ -372,7 +407,7 @@ const Dashboard = () => {
         body: JSON.stringify(body),
       });
 
-      const data = await response.json();
+      const data: VoteResponse = await response.json();
 
       if (response.ok) {
         // Update the item's score in the state
@@ -392,7 +427,7 @@ const Dashboard = () => {
           }));
         }
       } else {
-        console.error(`${method} vote failed:`, data.message);
+        console.error(`${method} vote failed:`, data.message || "Unknown error");
       }
     } catch (error) {
       console.error(
@@ -409,11 +444,11 @@ const Dashboard = () => {
   };
 
   const updateScoreInState = (
-    data: any,
+    data: VoteResponse,
     type: "post" | "comment",
     id: number
   ) => {
-    if (type === "post") {
+    if (type === "post" && data.post) {
       const updatedItem = data.post;
       setPosts((prevPosts) =>
         prevPosts.map((p) => {
@@ -428,7 +463,7 @@ const Dashboard = () => {
           prev ? { ...prev, score: updatedItem.score } : null
         );
       }
-    } else if (type === "comment") {
+    } else if (type === "comment" && data.comment) {
       const updatedItem = data.comment;
       setComments((prevComments) =>
         prevComments.map((c) => {
@@ -455,14 +490,14 @@ const Dashboard = () => {
           body: JSON.stringify({ content: newContent.trim() }),
         }
       );
-      const data = await response.json();
-      if (response.ok) {
+      const data: CommentResponse = await response.json();
+      if (response.ok && data.comment) {
         setComments(
-          comments.map((c) => (c.id === commentId ? data.comment : c))
+          comments.map((c) => (c.id === commentId ? data.comment! : c))
         );
         setEditingComment(null);
       } else {
-        console.error("Failed to update comment:", data.message);
+        console.error("Failed to update comment:", data.message || "Unknown error");
       }
     } catch (error) {
       console.error("Failed to update comment:", error);
@@ -482,13 +517,13 @@ const Dashboard = () => {
           credentials: "include",
         }
       );
+      const data: CommentResponse = await response.json();
       if (response.ok) {
         setComments((prevComments) =>
           prevComments.filter((c) => c.id !== commentId)
         );
       } else {
-        const data = await response.json();
-        console.error("Failed to delete comment:", data.message);
+        console.error("Failed to delete comment:", data.message || "Unknown error");
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -558,26 +593,29 @@ const Dashboard = () => {
       if (!selectedPost) return;
 
       try {
-        const response = await fetch("https://errorlyapi.onrender.com/comments", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            post_id: selectedPost.id,
-            parent_comment_id: comment.id,
-            content: replyContent.trim(),
-          }),
-        });
-        const data = await response.json();
-        if (response.ok) {
+        const response = await fetch(
+          "https://errorlyapi.onrender.com/comments",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              post_id: selectedPost.id,
+              parent_comment_id: comment.id,
+              content: replyContent.trim(),
+            }),
+          }
+        );
+        const data: CommentResponse = await response.json();
+        if (response.ok && data.comment) {
           setComments((prevComments) => [...prevComments, data.comment]);
           setReplyContent("");
           setIsReplying(false);
         } else {
-          console.error("Failed to create reply:", data.message);
+          console.error("Failed to create reply:", data.message || "Unknown error");
         }
       } catch (error) {
         console.error("Failed to create reply:", error);
