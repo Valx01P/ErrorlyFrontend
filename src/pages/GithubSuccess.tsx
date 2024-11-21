@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAppDispatch } from '../store/hooks'
 import { setAccessToken } from '../store/slices/auth.slice'
+import { refreshUser } from '../store/slices/user.slice'
 
 const GithubSuccess = () => {
     const [searchParams] = useSearchParams()
@@ -13,6 +14,7 @@ const GithubSuccess = () => {
         
         if (accessToken) {
             dispatch(setAccessToken(accessToken))
+            dispatch(refreshUser(accessToken))
             navigate('/profile')
         } else {
             navigate('/auth')
